@@ -2,7 +2,8 @@ const net = require('net');
 
 const client = net.createConnection({
 
-    host: '127.0.0.1',
+    host: '177.7.42.180',
+
     port: 5000
 
 });
@@ -21,28 +22,32 @@ client.on('connect', () => {
 
     console.log('Conectado al servidor');
 
-    client.write(JSON.stringify({
+    setTimeout(() => {
 
-        tipo: 'COMPRA',
+        client.write(JSON.stringify({
 
-        cliente: 'Kenneth',
+            tipo: 'COMPRA',
 
-        correo: 'eter.kenth@gmail.com',
+            cliente: 'Kenneth',
 
-        productos: [
+            correo: 'eter.kenth@gmail.com',
 
-            {
-                id: 1,
-                cantidad: 1
-            },
+            productos: [
 
-            {
-                id: 2,
-                cantidad: 2
-            }
+                {
+                    id: 1,
+                    cantidad: 1
+                },
 
-        ]
+                {
+                    id: 2,
+                    cantidad: 2
+                }
 
-    }));
+            ]
+
+        }));
+
+    }, 1000);
 
 });
