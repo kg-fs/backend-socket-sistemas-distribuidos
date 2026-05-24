@@ -1,17 +1,17 @@
-const net = require('net');
+const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
 
 const procesarCompra =
-require('./utils/procesarCompra');
+    require('./utils/procesarCompra');
 
 const generarPDF =
-require('./utils/generarPDF');
+    require('./utils/generarPDF');
 
 const enviarCorreo =
-require('./utils/enviarCorreo');
+    require('./utils/enviarCorreo');
 
-// cargar productos correctamente
+// cargar productos
 const productos = JSON.parse(
 
     fs.readFileSync(
@@ -22,25 +22,31 @@ const productos = JSON.parse(
 
 );
 
-const server = net.createServer((socket) => {
+// crear servidor websocket
+const wss = new WebSocket.Server({
+
+    port: 5000
+
+});
+
+wss.on('connection', (ws) => {
 
     console.log('Cliente conectado');
 
-    // mensaje bienvenida
-    socket.write(JSON.stringify({
+    // bienvenida
+    ws.send(JSON.stringify({
 
         tipo: 'BIENVENIDA',
 
-        mensaje: 'Conectado al socket server'
+        mensaje: 'Conectado al WebSocket server'
 
     }));
 
-    // escuchar datos
-    socket.on('data', async (data) => {
+    // escuchar mensajes
+    ws.on('message', async (data) => {
 
         try {
 
-            // convertir mensaje
             const mensaje =
                 JSON.parse(data.toString());
 
@@ -53,19 +59,19 @@ const server = net.createServer((socket) => {
 
                 case 'CATALOGO':
 
-                    socket.write(JSON.stringify({
+                    ws.send(JSON.stringify({
 
-                        tipo: 'CATALOGO_RESPONSE',
+                        tipo:
+                            'CATALOGO_RESPONSE',
 
                         productos
 
                     }));
 
-                break;
+                    break;
 
                 case 'COMPRA':
 
-                    // procesar compra
                     const resultado =
                         procesarCompra(
 
@@ -75,7 +81,6 @@ const server = net.createServer((socket) => {
 
                         );
 
-                    // datos factura
                     const datosCompra = {
 
                         cliente:
@@ -92,7 +97,6 @@ const server = net.createServer((socket) => {
                         'Generando PDF...'
                     );
 
-                    // generar pdf
                     const pdf =
                         await generarPDF(
                             datosCompra
@@ -107,7 +111,6 @@ const server = net.createServer((socket) => {
                         'Enviando correo...'
                     );
 
-                    // enviar correo
                     await enviarCorreo(
 
                         mensaje.correo,
@@ -122,8 +125,7 @@ const server = net.createServer((socket) => {
                         'Correo enviado'
                     );
 
-                    // responder cliente
-                    socket.write(JSON.stringify({
+                    ws.send(JSON.stringify({
 
                         tipo:
                             'COMPRA_EXITOSA',
@@ -135,11 +137,11 @@ const server = net.createServer((socket) => {
 
                     }));
 
-                break;
+                    break;
 
                 default:
 
-                    socket.write(JSON.stringify({
+                    ws.send(JSON.stringify({
 
                         tipo: 'ERROR',
 
@@ -157,11 +159,12 @@ const server = net.createServer((socket) => {
                 error
             );
 
-            socket.write(JSON.stringify({
+            ws.send(JSON.stringify({
 
                 tipo: 'ERROR',
 
-                mensaje: error.message
+                mensaje:
+                    error.message
 
             }));
 
@@ -169,7 +172,7 @@ const server = net.createServer((socket) => {
 
     });
 
-    socket.on('end', () => {
+    ws.on('close', () => {
 
         console.log(
             'Cliente desconectado'
@@ -179,10 +182,6 @@ const server = net.createServer((socket) => {
 
 });
 
-server.listen(5000, () => {
-
-    console.log(
-        'Servidor escuchando puerto 5000'
-    );
-
-});
+console.log(
+    'Servidor WebSocket escuchando puerto 5000'
+);

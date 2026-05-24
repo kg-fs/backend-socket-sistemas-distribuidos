@@ -26,25 +26,7 @@ client.on('connect', () => {
 
         client.write(JSON.stringify({
 
-            tipo: 'COMPRA',
-
-            cliente: 'Kenneth',
-
-            correo: 'eter.kenth@gmail.com',
-
-            productos: [
-
-                {
-                    id: 1,
-                    cantidad: 1
-                },
-
-                {
-                    id: 2,
-                    cantidad: 2
-                }
-
-            ]
+            tipo: 'CATALOGO'
 
         }));
 
