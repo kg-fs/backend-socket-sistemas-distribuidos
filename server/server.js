@@ -1,4 +1,4 @@
-const net = require('net');
+const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
 
@@ -22,27 +22,32 @@ const productos = JSON.parse(
 
 );
 
-// crear servidor TCP
-const server = net.createServer((socket) => {
+// crear servidor websocket
+const wss = new WebSocket.Server({
 
-    console.log('Cliente conectado');
+    host: '0.0.0.0',
+    port: 3000
 
-    // mensaje bienvenida
-    socket.write(
+});
 
-        JSON.stringify({
+wss.on('connection', (ws) => {
 
-            tipo: 'BIENVENIDA',
-
-            mensaje:
-                'Conectado al servidor TCP'
-
-        }) + '\n'
-
+    console.log(
+        'Cliente conectado'
     );
 
-    // escuchar datos
-    socket.on('data', async (data) => {
+    // mensaje bienvenida
+    ws.send(JSON.stringify({
+
+        tipo: 'BIENVENIDA',
+
+        mensaje:
+            'Conectado al WebSocket server'
+
+    }));
+
+    // escuchar mensajes
+    ws.on('message', async (data) => {
 
         try {
 
@@ -58,18 +63,14 @@ const server = net.createServer((socket) => {
 
                 case 'CATALOGO':
 
-                    socket.write(
+                    ws.send(JSON.stringify({
 
-                        JSON.stringify({
+                        tipo:
+                            'CATALOGO_RESPONSE',
 
-                            tipo:
-                                'CATALOGO_RESPONSE',
+                        productos
 
-                            productos
-
-                        }) + '\n'
-
-                    );
+                    }));
 
                     break;
 
@@ -128,38 +129,30 @@ const server = net.createServer((socket) => {
                         'Correo enviado'
                     );
 
-                    socket.write(
+                    ws.send(JSON.stringify({
 
-                        JSON.stringify({
+                        tipo:
+                            'COMPRA_EXITOSA',
 
-                            tipo:
-                                'COMPRA_EXITOSA',
+                        ...datosCompra,
 
-                            ...datosCompra,
+                        pdf:
+                            pdf.nombreArchivo
 
-                            pdf:
-                                pdf.nombreArchivo
-
-                        }) + '\n'
-
-                    );
+                    }));
 
                     break;
 
                 default:
 
-                    socket.write(
+                    ws.send(JSON.stringify({
 
-                        JSON.stringify({
+                        tipo: 'ERROR',
 
-                            tipo: 'ERROR',
+                        mensaje:
+                            'Tipo no reconocido'
 
-                            mensaje:
-                                'Tipo no reconocido'
-
-                        }) + '\n'
-
-                    );
+                    }));
 
             }
 
@@ -170,24 +163,20 @@ const server = net.createServer((socket) => {
                 error
             );
 
-            socket.write(
+            ws.send(JSON.stringify({
 
-                JSON.stringify({
+                tipo: 'ERROR',
 
-                    tipo: 'ERROR',
+                mensaje:
+                    error.message
 
-                    mensaje:
-                        error.message
-
-                }) + '\n'
-
-            );
+            }));
 
         }
 
     });
 
-    socket.on('end', () => {
+    ws.on('close', () => {
 
         console.log(
             'Cliente desconectado'
@@ -195,7 +184,7 @@ const server = net.createServer((socket) => {
 
     });
 
-    socket.on('error', (error) => {
+    ws.on('error', (error) => {
 
         console.log(
             'Error socket:',
@@ -206,11 +195,6 @@ const server = net.createServer((socket) => {
 
 });
 
-// iniciar servidor
-server.listen(3000, '0.0.0.0', () => {
-
-    console.log(
-        'Servidor TCP escuchando puerto 3000'
-    );
-
-});
+console.log(
+    'Servidor WebSocket escuchando puerto 3000'
+);

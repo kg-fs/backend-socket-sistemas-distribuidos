@@ -1,38 +1,47 @@
-const WebSocket = require('ws');
+const net = require('net');
 
-const socket = new WebSocket(
-    'ws://177.7.42.180:4321'
-);
+const client = new net.Socket();
 
-socket.on('open', () => {
+client.connect(3000, '177.7.42.180', () => {
 
     console.log(
-        'Conectado al servidor'
+        'Conectado al servidor TCP'
     );
 
     setTimeout(() => {
 
-        socket.send(JSON.stringify({
+        client.write(
+            JSON.stringify({
 
-            tipo: 'CATALOGO'
+                tipo: 'CATALOGO'
 
-        }));
+            }) + '\n'
+        );
 
     }, 1000);
 
 });
 
-socket.on('message', (data) => {
+client.on('data', (data) => {
 
     console.log('\nRESPUESTA:\n');
 
-    console.log(
-        JSON.parse(data.toString())
-    );
+    const mensajes = data
+        .toString()
+        .split('\n')
+        .filter(m => m.trim() !== '');
+
+    mensajes.forEach((m) => {
+
+        console.log(
+            JSON.parse(m)
+        );
+
+    });
 
 });
 
-socket.on('close', () => {
+client.on('close', () => {
 
     console.log(
         'Conexión cerrada'
@@ -40,7 +49,7 @@ socket.on('close', () => {
 
 });
 
-socket.on('error', (error) => {
+client.on('error', (error) => {
 
     console.log(
         'ERROR:',
