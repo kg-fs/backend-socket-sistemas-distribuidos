@@ -1,14 +1,28 @@
-const net = require('net');
+const WebSocket = require('ws');
 
-const client = net.createConnection({
+const socket = new WebSocket(
+    'ws://177.7.42.180:5000'
+);
 
-    host: '177.7.42.180',
+socket.on('open', () => {
 
-    port: 5000
+    console.log(
+        'Conectado al servidor'
+    );
+
+    setTimeout(() => {
+
+        socket.send(JSON.stringify({
+
+            tipo: 'CATALOGO'
+
+        }));
+
+    }, 1000);
 
 });
 
-client.on('data', (data) => {
+socket.on('message', (data) => {
 
     console.log('\nRESPUESTA:\n');
 
@@ -18,18 +32,19 @@ client.on('data', (data) => {
 
 });
 
-client.on('connect', () => {
+socket.on('close', () => {
 
-    console.log('Conectado al servidor');
+    console.log(
+        'Conexión cerrada'
+    );
 
-    setTimeout(() => {
+});
 
-        client.write(JSON.stringify({
+socket.on('error', (error) => {
 
-            tipo: 'CATALOGO'
-
-        }));
-
-    }, 1000);
+    console.log(
+        'ERROR:',
+        error.message
+    );
 
 });

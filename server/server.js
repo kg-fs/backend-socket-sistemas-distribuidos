@@ -25,6 +25,7 @@ const productos = JSON.parse(
 // crear servidor websocket
 const wss = new WebSocket.Server({
 
+    host: '0.0.0.0',
     port: 5000
 
 });
