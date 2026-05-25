@@ -26,7 +26,7 @@ const productos = JSON.parse(
 const wss = new WebSocket.Server({
 
     host: '0.0.0.0',
-    port: 8080
+    port: 4321
 
 });
 
