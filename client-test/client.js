@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 
 const socket = new WebSocket(
-    'ws://localhost:8080'
+    'ws://177.7.42.180:4321'
 );
 
 socket.on('open', () => {
